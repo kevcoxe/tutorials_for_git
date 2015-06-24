@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as macros %}
+{% block body %}
+
+<!-- navbar from macros.hmtl -->
+{{ macros.navbar() }}
+
+<!-- Main jumbotron for a primary marketing message or call to action -->
+<div class="jumbotron">
+    <div class="container">
+    <h1>Welcome to the workbench</h1>
+    </div>
+</div>
+
+<div class="container">
+    <div class="page-header">
+        <h1>Start Creating <small>add instructions and code</small></h1>
+    </div>
+    <form role="form" action="/add_part" method="post">
+        <div class="row">
+            <div class="col-md-12">
+                <h3>Enter your instructions for your code here!</h3>
+                <textarea class="form-control" rows="20" name="instruction"></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <h3>Enter your code here!</h3>
+                <textarea class="form-control" rows="20" name="code"></textarea>
+            </div>
+        </div>
+
+        <br>
+
+
+        <div class="row">
+            <div class="col-md-10"></div>
+            <div class="col-md-1">
+                <p><input type="submit" name="submit" class="btn btn-lg btn-success" value="Finish"></input></p>
+            </div>
+            <div class="col-md-1">
+                <p><input type="submit" name="submit" class="btn btn-lg btn-default" value="Next"></input></p>
+            </div>
+        </div>
+
+    </form>
+
+    {{ macros.list_items() }}
+    {{ macros.footer() }}
+
+</div> <!-- /container -->
+{% endblock %}

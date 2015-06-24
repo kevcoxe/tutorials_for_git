@@ -1,0 +1,37 @@
+
+{% extends 'base.html' %}
+{% import 'macros.html' as macros %}
+{% block body %}
+
+<!-- navbar from macros.hmtl -->
+{{ macros.navbar() }}
+
+<!-- Main jumbotron for a primary marketing message or call to action -->
+<div class="jumbotron">
+    <div class="container">
+    <h1>Here is your tutorial</h1>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="row">
+        <p>{{ finished_tutorial | safe }}</p>
+    </div>
+    <form role="form" action="/start_over" method="post">
+        <div class="row">
+            <div class="col-md-9"></div>
+            <div class="col-md-2">
+                <p><input type="submit" name="submit" class="btn btn-lg btn-success" value="Download"></input></p>
+            </div>
+            <div class="col-md-1">
+                <p><input type="submit" name="submit" class="btn btn-lg btn-danger" value="Finish"></input></p>
+            </div>
+        </div>
+
+    </form>
+
+    {{ macros.footer() }}
+
+</div> <!-- /container -->
+{% endblock %}

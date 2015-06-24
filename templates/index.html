@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% import 'macros.html' as macros %}
+{% block body %}
+
+<!-- navbar from macros.hmtl -->
+{{ macros.navbar() }}
+
+<!-- Main jumbotron for a primary marketing message or call to action -->
+<div class="jumbotron">
+    <div class="container">
+    <h1>Tutorials For Github</h1>
+    <p>Lets make something!</p>
+    <p><a class="btn btn-success btn-lg" href="/workbench" role="button">Get Started</a></p>
+    </div>
+</div>
+
+<div class="container">
+
+    {{ macros.list_items() }}
+    {{ macros.footer() }}
+
+</div> <!-- /container -->
+{% endblock %}
