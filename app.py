@@ -1,9 +1,14 @@
 from flask import Flask, render_template, request, jsonify, json, redirect, make_response
 import os
+
+from PageCreator import Creator
+
 app = Flask(__name__)
 
 
 cur_step = 1
+
+creator = Creator("Tutorial Page")
 
 @app.route('/')
 def index():
@@ -11,6 +16,8 @@ def index():
 
 @app.route('/workbench')
 def workbench():
+    if cur_step == 1:
+        creator.start_page()
     return render_template('workbench.html')
 
 @app.route('/add_part', methods=['POST'])
@@ -20,21 +27,16 @@ def construct():
         if request.form['submit'] == 'Next':
             instruction = request.form['instruction']
             code = request.form['code']
-            print instruction, code
-            add_part(instruction, code, cur_step)
+            creator.add_to_page(cur_step, instruction, code)
             cur_step += 1
             return redirect('/workbench')
 
         elif request.form['submit'] == 'Finish':
             instruction = request.form['instruction']
             code = request.form['code']
-            print instruction, code
-            add_part(instruction, code, cur_step)
+            creator.add_to_page(cur_step, instruction, code)
             cur_step = 1
-
-            finished_tutorial = get_result()
-            print finished_tutorial
-
+            finished_tutorial = "Nothing"
             return render_template('result.html', finished_tutorial=finished_tutorial)
         else:
             pass
@@ -48,32 +50,25 @@ def start_over():
         if request.form['submit'] == 'Download':
             body = get_result()
             response = make_response(body)
-            response.headers["Content-Disposition"] = "attachment; filename=tutorial.html"
-
+            response.headers["Content-Disposition"] = "attachment; filename=templates/Tutorial-Page.html"
+            creator.close_page()
             remove_file()
             return response
 
-        elif request.form['submit'] == 'Finish':
-            remove_file()
-            return redirect('/')
+        elif request.form['submit'] == 'View':
+            creator.close_page()
+            return render_template("Tutorial-Page.html")
         else:
             pass
 
     return redirect('/')
 
-def add_part(instruction, code, step):
-    with open('tutorial', 'a') as f:
-        f.write("step %d\n" % step)
-        f.write("\n------------------------------------------------\n")
-        f.write("\n%s\n" % instruction)
-        f.write("\n\n%s\n" % code)
-
 def get_result():
-    with open('tutorial', 'r') as f:
-        return f.read().replace('\n', '<br>')
+    with open('templates/Tutorial-Page.html', 'r') as f:
+        return f.read()
 
 def remove_file():
-    myfile = "tutorial"
+    myfile = "templates/Tutorial-Page.html"
     if os.path.isfile(myfile):
         os.remove(myfile)
 
