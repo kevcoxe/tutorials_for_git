@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, jsonify, json, redirect, make_response
 import os
+from flask import Flask, render_template, request, jsonify, json, redirect, make_response
 
 from PageCreator import Creator
 
@@ -10,15 +10,19 @@ cur_step = 1
 
 creator = Creator("Tutorial Page")
 
+
 @app.route('/')
 def index():
+    remove_file()
     return render_template('index.html')
+
 
 @app.route('/workbench')
 def workbench():
     if cur_step == 1:
         creator.start_page()
     return render_template('workbench.html')
+
 
 @app.route('/add_part', methods=['POST'])
 def construct():
@@ -43,6 +47,7 @@ def construct():
     elif request.method == 'GET':
         return redirect('/workbench')
 
+
 @app.route('/start_over', methods=['POST'])
 def start_over():
     global cur_step
@@ -63,15 +68,16 @@ def start_over():
 
     return redirect('/')
 
+
 def get_result():
     with open('templates/Tutorial-Page.html', 'r') as f:
         return f.read()
+
 
 def remove_file():
     myfile = "templates/Tutorial-Page.html"
     if os.path.isfile(myfile):
         os.remove(myfile)
-
 
 
 if __name__ == '__main__':

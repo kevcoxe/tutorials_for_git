@@ -1,2 +1,3 @@
 *.pyc
 templates/Tutorial-Page.html
+venv
