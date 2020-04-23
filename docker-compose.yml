@@ -1,0 +1,14 @@
+version: "3.7"
+
+services:
+
+  github-page-generator:
+    build: .
+    container_name: github_page_generator
+    restart: always
+    environment:
+      - PORT=5000
+    expose:
+      - 5000
+    ports:
+      - "5000:5000"

@@ -20,7 +20,7 @@ def index():
 @app.route('/workbench')
 def workbench():
     if cur_step == 1:
-        creator.start_page()
+        creator.reset_steps()
     return render_template('workbench.html')
 
 
@@ -39,8 +39,9 @@ def construct():
             instruction = request.form['instruction']
             code = request.form['code']
             creator.add_to_page(cur_step, instruction, code)
+            creator.create_page()
             cur_step = 1
-            finished_tutorial = "Nothing"
+            finished_tutorial = creator.title
             return render_template('result.html', finished_tutorial=finished_tutorial)
         else:
             pass
@@ -56,12 +57,10 @@ def start_over():
             body = get_result()
             response = make_response(body)
             response.headers["Content-Disposition"] = "attachment; filename=templates/Tutorial-Page.html"
-            creator.close_page()
             remove_file()
             return response
 
         elif request.form['submit'] == 'View':
-            creator.close_page()
             return render_template("Tutorial-Page.html")
         else:
             pass
@@ -82,5 +81,6 @@ def remove_file():
 
 if __name__ == '__main__':
     app.run(
-        debug=True,
+        host=os.getenv('HOST', '0.0.0.0'),
+        port=os.getenv('PORT', 5000)
     )
