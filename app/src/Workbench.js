@@ -1,20 +1,15 @@
 import React, { useState } from 'react';
 
-const Workbench = ({ stopCreating, addPage }) => {
+const Workbench = ({ addPage }) => {
 
-    const [ steps, setSteps ] = useState([])
     const [ instruction, setInstruction ] = useState('')
     const [ code, setCode ] = useState('')
+    const [ page, setPage ] = useState({
+        title: 'This is a test page',
+        steps: []
+    })
 
-    const createAndAddPage = () => {
-        console.log('create and add page')
-        addPage({
-            title: 'this is a tes page',
-            steps: steps
-        })
-    }
-
-    const addStep = (callback) => {
+    const addStep = () => {
         console.log('adding step')
         if (instruction && code) {
             const newStep = {
@@ -22,8 +17,7 @@ const Workbench = ({ stopCreating, addPage }) => {
                 code: code
             }
 
-            setSteps([...steps, newStep])
-
+            setPage({...page, steps: [...page.steps, newStep]})
             setInstruction('')
             setCode('')
         }
@@ -31,8 +25,15 @@ const Workbench = ({ stopCreating, addPage }) => {
 
     const finish = () => {
         console.log('finishing')
-        addStep()
-        createAndAddPage()
+        var steps = []
+        if (instruction && code) {
+            const newStep = {
+                instruction: instruction,
+                code: code
+            }
+            steps = [...page.steps, newStep]
+        }
+        addPage({...page, steps})
     }
 
     return (
