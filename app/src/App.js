@@ -4,11 +4,6 @@ import Workbench from './Workbench';
 
 const CreatePageHtml = ({ pageInfo, height, hideResults, returnFile = false }) => {
 
-  const getBlobURL = (code, type) => {
-    const blob = new Blob([code], { type })
-    return URL.createObjectURL(blob)
-  }
-
   const createStepTemplate = ({ stepNumber, instruction, exampleCode }) => {
     return (
       `<h3>
@@ -60,9 +55,14 @@ const CreatePageHtml = ({ pageInfo, height, hideResults, returnFile = false }) =
     'http://kevcoxe.github.io/Simple-Flask-App/stylesheets/pygment_trac.css'
   ]
 
-  const getTemplateWithBlobUrls = () => {
+  const localCssLinkText = [
+    'css/stylesheet.css',
+    'css/pygment_trac.css'
+  ]
+
+  const getTemplateFromLocal = () => {
     const template = createMainTemplate({
-      cssLinks: cssLinkText.map(link => `<link rel="stylesheet" type="text/css" href="${getBlobURL(link, 'text/css')}" media="screen">`).join(' '),
+      cssLinks: localCssLinkText.map(link => `<link rel="stylesheet" type="text/css" href=${link} media="screen">`).join(' '),
       title: pageInfo.title,
       steps: pageInfo.steps.map((step, stepNumber) => {
         return createStepTemplate({
@@ -76,7 +76,7 @@ const CreatePageHtml = ({ pageInfo, height, hideResults, returnFile = false }) =
     return template
   }
 
-  const getTemplateWithoutBlobUrls = () => {
+  const getTemplate = () => {
     const template = createMainTemplate({
       cssLinks: cssLinkText.map(link => `<link rel="stylesheet" type="text/css" href=${link} media="screen">`).join(' '),
       title: pageInfo.title,
@@ -93,7 +93,7 @@ const CreatePageHtml = ({ pageInfo, height, hideResults, returnFile = false }) =
   }
 
   const createAndPromptDownload = () => {
-    const template = getTemplateWithoutBlobUrls()
+    const template = getTemplate()
     const filename = 'tutorialpage.html'
     const element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(template));
@@ -110,7 +110,7 @@ const CreatePageHtml = ({ pageInfo, height, hideResults, returnFile = false }) =
   if (returnFile) {
     return createAndPromptDownload()
   } else {
-    const template = getTemplateWithoutBlobUrls()
+    const template = getTemplateFromLocal()
 
     return (
       <>
