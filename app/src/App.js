@@ -1,83 +1,237 @@
-import React, { useState } from 'react';
+import React, { useReducer } from 'react';
 import Workbench from './Workbench';
 
-const App = () => {
 
-  const [ pages, setPages ] = useState([])
-  const [ creating, setCreating ] = useState(false)
+const CreatePageHtml = ({ pageInfo, height, hideResults, returnFile = false }) => {
+  const stepTemplate = (stepInfo, step_number) => {
+    return (
+      `
+      <h3>
+          <a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true">
+              <span class="octicon octicon-link"></span>
+          </a>Step {{ step_number }}
+      </h3>
 
-  const stopCreating = () => {
-    console.log('stopping creating')
-    setCreating(false)
+      {{ instruction }}
+
+      {{ example_code }}
+      `.replace('{{ instruction }}', stepInfo.instruction !== '' ? `<p>${stepInfo.instruction}</p>` : '')
+        .replace('{{ example_code }}', stepInfo.exampleCode !== '' ? `<pre><code>${stepInfo.exampleCode}</pre></code>` : '')
+        .replace('{{ step_number }}', step_number)
+    )
   }
 
-  const addPage = (page) => {
-    console.log('adding page')
-    setPages([...pages, page])
-    setCreating(false)
+  const template = `<!DOCTYPE html>
+  <html>
+      <head>
+          <meta charset='utf-8'>
+          <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  
+          <link rel="stylesheet" type="text/css" href="http://kevcoxe.github.io/Simple-Flask-App/stylesheets/stylesheet.css" media="screen">
+          <link rel="stylesheet" type="text/css" href="http://kevcoxe.github.io/Simple-Flask-App/stylesheets/pygment_trac.css" media="screen">
+  
+          <title>Simple Tutorial</title>
+      </head>
+      <body>
+          <header>
+              <div class="container">
+                  <h1>{{ title }}</h1>
+              </div>
+          </header>
+          <div class="container">
+              <section id="main_content">
+                {{ steps }}
+              </section>
+          </div>
+      </body>
+  </html>`.replace('{{ title }}', pageInfo.title)
+    .replace('{{ steps }}', pageInfo.steps.map((step, step_number) => stepTemplate(step, step_number)).join(' '))
+
+  const createAndPromptDownload = () => {
+    const filename = 'tutorialpage.html'
+    const element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(template));
+    element.setAttribute('download', filename);
+
+    element.style.display = 'none';
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+  }
+
+  return returnFile ? createAndPromptDownload() : (
+    <>
+      <button class="btn input-block-level form-control" onClick={hideResults} >Back Home</button>
+      <iframe title="sample view" srcdoc={template} width="100%" height={height}></iframe>
+    </>)
+}
+
+const initialPageState = {
+  title: 'Your github tutorial',
+  steps: [],
+  instruction: '',
+  exampleCode: '',
+  creating: false,
+  veiwResult: false
+}
+
+const pageReducer = (state, action) => {
+  switch (action.type) {
+    case 'update page': {
+      return {
+        ...initialPageState, creating: true
+      }
+    }
+    case 'finished updating': {
+      if (state.instruction || state.exampleCode) {
+        return {
+          ...state,
+          steps: [...state.steps, {
+            instruction: state.instruction,
+            exampleCode: state.exampleCode
+          }],
+          instruction: '',
+          exampleCode: '',
+          creating: false
+        }
+      } else {
+        return { ...state, creating: false }
+      }
+    }
+    case 'add step': {
+      return {
+        ...state,
+        steps: [...state.steps, {
+          instruction: state.instruction,
+          exampleCode: state.exampleCode
+        }],
+        instruction: '',
+        exampleCode: ''
+      }
+    }
+    case 'update title': {
+      return { ...state, title: action.data }
+    }
+    case 'update instruction': {
+      return { ...state, instruction: action.data }
+    }
+    case 'update exampleCode': {
+      return { ...state, exampleCode: action.data }
+    }
+    case 'view results': {
+      return { ...state, veiwResult: true }
+    }
+    case 'hide results': {
+      return { ...state, veiwResult: false }
+    }
+    default:
+      return state
+  }
+
+}
+
+const App = () => {
+  const [state, dispatch] = useReducer(pageReducer, initialPageState)
+  const { steps, creating, veiwResult } = state
+
+  var body = document.body, html = document.documentElement;
+  var height = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );
+  height = window.innerHeight
+
+  const addStep = () => {
+    dispatch({ type: 'add step' })
+  }
+
+  const updateTitle = (newTitle) => {
+    dispatch({
+      type: 'update title',
+      data: newTitle
+    })
+  }
+
+  const updateInstruction = (newInstruction) => {
+    dispatch({
+      type: 'update instruction',
+      data: newInstruction
+    })
+  }
+
+  const updateCode = (newCode) => {
+    dispatch({
+      type: 'update exampleCode',
+      data: newCode
+    })
+  }
+
+  const showResults = () => {
+    dispatch({ type: 'view results' })
+  }
+
+  const hideResults = () => {
+    dispatch({ type: 'hide results' })
+  }
+
+  const showEditPage = () => { dispatch({ type: 'update page' }) }
+  const finishedEditing = () => { dispatch({ type: 'finished updating' }) }
+  const downloadHtml = () => {
+    CreatePageHtml({pageInfo: state, returnFile: true})
   }
 
   return (
-    <div>
-      <div className="navbar navbar-inverse navbar-fixed-top">
-        <div className="container">
-            <div className="navbar-header">
+    <>
+      {veiwResult ? (
+        <CreatePageHtml pageInfo={state} height={height} hideResults={hideResults} />
+      ) : (
+        <div id="main">
+          <div className="navbar navbar-inverse navbar-fixed-top">
+            <div className="container">
+              <div className="navbar-header">
                 <button type="button" className="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                <span className="sr-only">Toggle navigation</span>
-                <span className="icon-bar"></span>
-                <span className="icon-bar"></span>
-                <span className="icon-bar"></span>
+                  <span className="sr-only">Toggle navigation</span>
+                  <span className="icon-bar"></span>
+                  <span className="icon-bar"></span>
+                  <span className="icon-bar"></span>
                 </button>
                 <a className="navbar-brand" href="/">Tutorials For Github</a>
+              </div>
+              <div id="navbar" className="navbar-collapse collapse">
+                <ul className="nav navbar-nav">
+                  <li className="active"><a href="/">Home</a></li>
+                </ul>
+              </div>
             </div>
-          <div id="navbar" className="navbar-collapse collapse">
-            <ul className="nav navbar-nav">
-              <li className="active"><a href="/">Home</a></li>
-            </ul>
           </div>
-        </div>
-      </div>
-      { creating ? (
-          <Workbench
-            stopCreating={stopCreating}
-            addPage={addPage}
-          />
-        ) : (
-          <div>
-            <div className="jumbotron">
-                <div className="container">
-                <h1>Tutorial Creator For Github</h1>
-                <p>Lets make something!</p>
-                <p><a className="btn btn-success btn-lg" role="button" onClick={() => setCreating(true)}>Get Started</a></p>
-                </div>
-            </div>
-            { pages.map((page, i) => {
-              console.log(page)
-              return (
-                <div className="row" key={i}>
-                  <div className="col-md-12">
-                      <div className="well">
-                        <h2>{ page.title }</h2>
-                        { page.steps.map((step, j) => {
-                          return (
-                            <div className="container" key={`${i}${j}`}>
-                              <div className="row">
-                                <p>{ step.instruction }</p>
-                              </div>
-                              <div className="row">
-                                <p>{ step.code }</p>
-                              </div>
-                            </div>
-                          )
-                        })}
+          {creating ? (
+            <Workbench
+              state={state}
+              addStep={addStep}
+              updateTitle={updateTitle}
+              updateInstruction={updateInstruction}
+              updateCode={updateCode}
+              finishedEditing={finishedEditing}
+            />
+          ) : (
+              <div>
+                <div className="jumbotron">
+                  <div className="container">
+                    <h1>Tutorial Creator For Github</h1>
+                    <p>Lets make something!</p>
+                    <p><button className="btn btn-success btn-lg" onClick={showEditPage}>{steps.length > 0 ? 'Start over' : 'Get Started'}</button></p>
+                    { steps.length > 0 && (
+                      <div class="btn-group" role="group" aria-label="Basic example">
+                        <button type="button" class="btn btn-primary" onClick={downloadHtml}>Download HTML</button>
+                        <button type="button" class="btn btn-info" onClick={showResults}>Live View</button>
                       </div>
+                    )}
                   </div>
                 </div>
-              )
-            })}
-          </div>
+              </div>
+            )}
+        </div>
       )}
-    </div>
+    </>
   );
 }
 
