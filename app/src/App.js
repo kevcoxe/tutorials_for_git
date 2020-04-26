@@ -60,8 +60,23 @@ const CreatePageHtml = ({ pageInfo, height, hideResults, returnFile = false }) =
     'http://kevcoxe.github.io/Simple-Flask-App/stylesheets/pygment_trac.css'
   ]
 
-  const createAndPromptDownload = () => {
+  const getTemplateWithBlobUrls = () => {
+    const template = createMainTemplate({
+      cssLinks: cssLinkText.map(link => `<link rel="stylesheet" type="text/css" href="${getBlobURL(link, 'text/css')}" media="screen">`).join(' '),
+      title: pageInfo.title,
+      steps: pageInfo.steps.map((step, stepNumber) => {
+        return createStepTemplate({
+          stepNumber: stepNumber,
+          instruction: step.instruction,
+          exampleCode: step.exampleCode
+        })
+      }).join(' ')
+    })
 
+    return template
+  }
+
+  const getTemplateWithoutBlobUrls = () => {
     const template = createMainTemplate({
       cssLinks: cssLinkText.map(link => `<link rel="stylesheet" type="text/css" href=${link} media="screen">`).join(' '),
       title: pageInfo.title,
@@ -74,6 +89,11 @@ const CreatePageHtml = ({ pageInfo, height, hideResults, returnFile = false }) =
       }).join(' ')
     })
 
+    return template
+  }
+
+  const createAndPromptDownload = () => {
+    const template = getTemplateWithoutBlobUrls()
     const filename = 'tutorialpage.html'
     const element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(template));
@@ -90,17 +110,7 @@ const CreatePageHtml = ({ pageInfo, height, hideResults, returnFile = false }) =
   if (returnFile) {
     return createAndPromptDownload()
   } else {
-    const template = createMainTemplate({
-      cssLinks: cssLinkText.map(link => `<link rel="stylesheet" type="text/css" href=${getBlobURL(link, 'text/css')} media="screen">`).join(' '),
-      title: pageInfo.title,
-      steps: pageInfo.steps.map((step, stepNumber) => {
-        return createStepTemplate({
-          stepNumber: stepNumber,
-          instruction: step.instruction,
-          exampleCode: step.exampleCode
-        })
-      }).join(' ')
-    })
+    const template = getTemplateWithoutBlobUrls()
 
     return (
       <>
