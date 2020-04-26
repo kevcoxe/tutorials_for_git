@@ -3,10 +3,15 @@ import Workbench from './Workbench';
 
 
 const CreatePageHtml = ({ pageInfo, height, hideResults, returnFile = false }) => {
-  const stepTemplate = (stepInfo, step_number) => {
+
+  const getBlobURL = (code, type) => {
+    const blob = new Blob([code], { type })
+    return URL.createObjectURL(blob)
+  }
+
+  const createStepTemplate = ({ stepNumber, instruction, exampleCode }) => {
     return (
-      `
-      <h3>
+      `<h3>
           <a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true">
               <span class="octicon octicon-link"></span>
           </a>Step {{ step_number }}
@@ -15,39 +20,60 @@ const CreatePageHtml = ({ pageInfo, height, hideResults, returnFile = false }) =
       {{ instruction }}
 
       {{ example_code }}
-      `.replace('{{ instruction }}', stepInfo.instruction !== '' ? `<p>${stepInfo.instruction}</p>` : '')
-        .replace('{{ example_code }}', stepInfo.exampleCode !== '' ? `<pre><code>${stepInfo.exampleCode}</pre></code>` : '')
-        .replace('{{ step_number }}', step_number)
+      `.replace('{{ step_number }}', stepNumber)
+        .replace('{{ instruction }}', instruction)
+        .replace('{{ example_code }}', exampleCode)
     )
   }
 
-  const template = `<!DOCTYPE html>
-  <html>
-      <head>
-          <meta charset='utf-8'>
-          <meta http-equiv="X-UA-Compatible" content="chrome=1">
-  
-          <link rel="stylesheet" type="text/css" href="http://kevcoxe.github.io/Simple-Flask-App/stylesheets/stylesheet.css" media="screen">
-          <link rel="stylesheet" type="text/css" href="http://kevcoxe.github.io/Simple-Flask-App/stylesheets/pygment_trac.css" media="screen">
-  
-          <title>Simple Tutorial</title>
-      </head>
-      <body>
-          <header>
-              <div class="container">
-                  <h1>{{ title }}</h1>
-              </div>
-          </header>
-          <div class="container">
-              <section id="main_content">
-                {{ steps }}
-              </section>
-          </div>
-      </body>
-  </html>`.replace('{{ title }}', pageInfo.title)
-    .replace('{{ steps }}', pageInfo.steps.map((step, step_number) => stepTemplate(step, step_number)).join(' '))
+  const createMainTemplate = ({ cssLinks, title, steps }) =>{
+    return (
+      `<!DOCTYPE html>
+        <html>
+            <head>
+                <meta charset='utf-8'>
+                <meta http-equiv="X-UA-Compatible" content="chrome=1">
+                {{ css_links }}
+                <title>Tutorial</title>
+            </head>
+            <body>
+                <header>
+                    <div class="container">
+                        <h1>{{ title }}</h1>
+                    </div>
+                </header>
+                <div class="container">
+                    <section id="main_content">
+                      {{ steps }}
+                    </section>
+                </div>
+            </body>
+        </html>
+      `.replace('{{ css_links }}', cssLinks)
+        .replace('{{ title }}', title)
+        .replace('{{ steps }}', steps)
+    )
+  }
+
+  const cssLinkText = [
+    'http://kevcoxe.github.io/Simple-Flask-App/stylesheets/stylesheet.css',
+    'http://kevcoxe.github.io/Simple-Flask-App/stylesheets/pygment_trac.css'
+  ]
 
   const createAndPromptDownload = () => {
+
+    const template = createMainTemplate({
+      cssLinks: cssLinkText.map(link => `<link rel="stylesheet" type="text/css" href=${link} media="screen">`).join(' '),
+      title: pageInfo.title,
+      steps: pageInfo.steps.map((step, stepNumber) => {
+        return createStepTemplate({
+          stepNumber: stepNumber,
+          instruction: step.instruction,
+          exampleCode: step.exampleCode
+        })
+      }).join(' ')
+    })
+
     const filename = 'tutorialpage.html'
     const element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(template));
@@ -61,11 +87,29 @@ const CreatePageHtml = ({ pageInfo, height, hideResults, returnFile = false }) =
     document.body.removeChild(element);
   }
 
-  return returnFile ? createAndPromptDownload() : (
-    <>
-      <button class="btn input-block-level form-control" onClick={hideResults} >Back Home</button>
-      <iframe title="sample view" srcdoc={template} width="100%" height={height}></iframe>
-    </>)
+  if (returnFile) {
+    return createAndPromptDownload()
+  } else {
+    const template = createMainTemplate({
+      cssLinks: cssLinkText.map(link => `<link rel="stylesheet" type="text/css" href=${getBlobURL(link, 'text/css')} media="screen">`).join(' '),
+      title: pageInfo.title,
+      steps: pageInfo.steps.map((step, stepNumber) => {
+        return createStepTemplate({
+          stepNumber: stepNumber,
+          instruction: step.instruction,
+          exampleCode: step.exampleCode
+        })
+      }).join(' ')
+    })
+
+    return (
+      <>
+        <button class="btn input-block-level form-control" onClick={hideResults} >Back Home</button>
+        <iframe title="sample view" srcdoc={template} width="100%" height={height}></iframe>
+      </>
+    )
+  }
+
 }
 
 const initialPageState = {
