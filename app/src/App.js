@@ -21,8 +21,8 @@ const CreatePageHtml = ({ pageInfo, height, hideResults, returnFile = false }) =
 
       {{ example_code }}
       `.replace('{{ step_number }}', stepNumber)
-        .replace('{{ instruction }}', instruction)
-        .replace('{{ example_code }}', exampleCode)
+        .replace('{{ instruction }}', `<p>${instruction}</p>`)
+        .replace('{{ example_code }}', `<pre><code>${exampleCode}</code></pre>`)
     )
   }
 
